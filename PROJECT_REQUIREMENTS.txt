@@ -1,0 +1,346 @@
+================================================================================
+                    EXPENSE TRACKER SYSTEM (JAVA & MYSQL)
+                SOFTWARE REQUIREMENTS SPECIFICATION (SRS)
+================================================================================
+
+Document Version : 1.0
+Author / Role    : Software Engineering Team / Student Project Specification
+Application Type : Desktop Financial Management & Analytics System
+Platform         : Java SE (Swing GUI) & MySQL Database
+
+--------------------------------------------------------------------------------
+TABLE OF CONTENTS
+--------------------------------------------------------------------------------
+1. PROJECT OVERVIEW & OBJECTIVES
+2. SYSTEM HARDWARE REQUIREMENTS
+3. SYSTEM SOFTWARE & RUNTIME REQUIREMENTS
+4. FUNCTIONAL REQUIREMENTS (FR)
+   4.1 User Authentication & Account Management
+   4.2 Expense Management (CRUD Operations)
+   4.3 Dashboard & Real-Time Analytics
+   4.4 Category & Date-Range Filtering
+   4.5 Session & Multi-User Security Isolation
+5. NON-FUNCTIONAL REQUIREMENTS (NFR)
+   5.1 Performance & Responsiveness
+   5.2 Security & Data Integrity
+   5.3 Usability & UI/UX Standards
+   5.4 Reliability & Exception Handling
+6. DATABASE REQUIREMENTS & SCHEMA DESIGN
+   6.1 Database Configuration
+   6.2 'users' Table Definition
+   6.3 'expenses' Table Definition
+   6.4 Relational Constraints & Cascading Rules
+7. ARCHITECTURAL & DESIGN REQUIREMENTS
+   7.1 4-Tier Layered Architecture
+   7.2 Object-Oriented Programming (OOP) Compliance
+   7.3 Concurrency & Multithreading Requirements
+8. DEPENDENCIES & THIRD-PARTY LIBRARIES
+9. INSTALLATION, CONFIGURATION & EXECUTION INSTRUCTIONS
+10. VERIFICATION & TESTING CHECKLIST
+
+================================================================================
+1. PROJECT OVERVIEW & OBJECTIVES
+================================================================================
+The Personal Expense Tracker is a standalone, multi-tenant desktop application
+designed to assist individual users in recording, tracking, categorizing, and
+analyzing personal expenses in real time.
+
+PRIMARY OBJECTIVES:
+* Eliminate manual record-keeping errors through rigorous client- and service-
+  layer validation.
+* Provide multi-user support with complete data privacy and tenant isolation.
+* Compute instantaneous financial metrics (Total Spend, Transaction Count, 
+  Current Month Total, Category Breakdown).
+* Maintain asynchronous, responsive UI operations without freezing during 
+  database transactions.
+* Demonstrate adherence to industry software engineering best practices,
+  including Object-Oriented design patterns, Layered Architecture, and 
+  parameterized SQL queries.
+
+================================================================================
+2. SYSTEM HARDWARE REQUIREMENTS
+================================================================================
+* Processor         : Minimum 1.6 GHz dual-core (Intel Core i3 / AMD Ryzen 3
+                      or higher recommended).
+* System Memory     : Minimum 2 GB RAM (4 GB RAM recommended).
+* Storage Space     : Minimum 200 MB free hard disk / SSD space.
+* Display / Monitor : Minimum 1024 x 768 display resolution (1920 x 1080
+                      recommended for optimal Swing component rendering).
+* Input Devices     : Keyboard and Mouse (or Touchpad).
+
+================================================================================
+3. SYSTEM SOFTWARE & RUNTIME REQUIREMENTS
+================================================================================
+* Operating System  : Microsoft Windows 10 / Windows 11 (64-bit), macOS 11+, 
+                      or modern Linux distributions (Ubuntu 20.04+).
+* Java Runtime      : Java SE Development Kit (JDK) 17 LTS or higher
+                      (Compatible with JDK 21 LTS & JDK 27).
+* Database Engine   : MySQL Community Server 8.0 or higher.
+* JDBC Driver       : MySQL Connector/J 8.3.0 (mysql-connector-j-8.3.0.jar).
+* Command Shell     : Windows PowerShell 5.1+, Command Prompt (cmd), or Bash.
+
+================================================================================
+4. FUNCTIONAL REQUIREMENTS (FR)
+================================================================================
+
+4.1 USER AUTHENTICATION & ACCOUNT MANAGEMENT
+--------------------------------------------
+* FR-01: User Registration
+  - The system must permit new users to create accounts by specifying:
+    1. Full Name (Non-blank text)
+    2. Email Address (Unique, adhering to standard email format: user@domain.ext)
+    3. Password (Minimum 6 characters)
+    4. Confirm Password (Must match Password exactly)
+  - The system must prevent duplicate email registration and return a descriptive
+    user-friendly notification.
+
+* FR-02: User Login
+  - Users must authenticate using registered Email and Password.
+  - Invalid credentials must be rejected without exposing database schema details.
+  - Input password fields must be masked and wiped from memory after processing.
+
+* FR-03: User Logout
+  - Users must be able to log out securely, clearing the active SessionManager 
+    state and returning the interface to the Login screen.
+
+4.2 EXPENSE MANAGEMENT (CRUD OPERATIONS)
+----------------------------------------
+* FR-04: Add Expense
+  - Authenticated users must be able to log expenses with:
+    1. Amount (Must be a positive numeric value > 0.00)
+    2. Category (Predefined: Food, Rent, Utilities, Transport, Entertainment,
+       Health, Shopping, Education, Other)
+    3. Expense Date (ISO-8601 YYYY-MM-DD format; defaults to current date)
+    4. Description (Optional text up to 255 characters)
+
+* FR-05: View Expense History
+  - Users must be able to view their complete transaction history in a 
+    tabular ledger sorted chronologically (newest first).
+  - Columns must display: ID, Amount (formatted currency), Category, 
+    Date (dd-MMM-yyyy), and Description.
+
+* FR-06: Edit Expense
+  - Users must be able to select any existing expense they own and modify the
+    amount, category, date, or description.
+  - Edited values must undergo the exact same validation as new expenses.
+
+* FR-07: Delete Expense
+  - Users must be able to permanently delete an expense.
+  - A modal confirmation dialog ("Are you sure you want to delete this expense?")
+    must appear before execution to prevent accidental loss.
+
+4.3 DASHBOARD & REAL-TIME ANALYTICS
+-----------------------------------
+* FR-08: Summary Statistics
+  - The dashboard must display three dynamic KPI summary cards:
+    1. Total Expenses: Lifetime cumulative amount spent by the logged-in user.
+    2. Number of Expenses: Total count of logged expense records.
+    3. Current Month Expenses: Total spending within the current calendar month.
+
+* FR-09: Automatic Dashboard Refresh
+  - The dashboard metrics must refresh automatically whenever an expense is 
+    added, edited, or deleted.
+
+4.4 CATEGORY & DATE-RANGE FILTERING
+-----------------------------------
+* FR-10: Category Summary
+  - Users must be able to view an aggregated breakdown displaying total spend,
+    percentage share, and record count grouped by each expense category.
+
+* FR-11: Date-Range Filtering
+  - Users must be able to query records within custom Start Date and End Date 
+    boundaries.
+  - The system must validate that Start Date is not after End Date.
+
+4.5 SESSION & MULTI-USER SECURITY ISOLATION
+-------------------------------------------
+* FR-12: Tenant Data Isolation
+  - Every SQL query for listing, reading, calculating, updating, or deleting 
+    expenses must enforce `WHERE user_id = ?` matching the active session user.
+  - User A must NEVER be able to query, view, edit, or delete User B's records.
+
+================================================================================
+5. NON-FUNCTIONAL REQUIREMENTS (NFR)
+================================================================================
+
+5.1 PERFORMANCE & RESPONSIVENESS
+* NFR-01: Background Worker Threads
+  - All database queries must execute off the Swing Event Dispatch Thread (EDT) 
+    using `javax.swing.SwingWorker` to prevent UI freezing.
+* NFR-02: Concurrent Multitasking
+  - Dashboard KPI computations must execute concurrently using 
+    `CompletableFuture.supplyAsync()` to reduce screen load latency.
+
+5.2 SECURITY & DATA INTEGRITY
+* NFR-03: SQL Injection Prevention
+  - All database interactions must use parameterized `PreparedStatement`.
+    Zero string concatenation in SQL queries is permitted.
+* NFR-04: Credential Externalization
+  - Database credentials must be loaded from external configuration 
+    (`config/db.properties`) rather than hardcoded in source files.
+* NFR-05: In-Memory Data Sanitization
+  - Passwords must be scrubbed from domain objects (`User.toString()` prints
+    `password='[PROTECTED]'`) and cleared from `char[]` arrays after login.
+
+5.3 USABILITY & UI/UX STANDARDS
+* NFR-06: High-Contrast Accessible Typography
+  - All text, labels, and table headers must use high-contrast dark/black 
+    foreground colors (`Color.BLACK`, `#0F172A`, `#334155`) for clarity.
+* NFR-07: Standardized Responsive Layouts
+  - Windows must center on screen (`setLocationRelativeTo(null)`), enforce 
+    minimum window boundaries, and utilize standard LayoutManagers 
+    (BorderLayout, GridBagLayout, BoxLayout) with zero absolute positioning.
+
+5.4 RELIABILITY & EXCEPTION HANDLING
+* NFR-08: Layered Exception Translation
+  - Low-level `SQLException` must be caught at the DAO/Service layer and 
+    translated into domain-friendly `ServiceException` messages.
+* NFR-09: User-Friendly Dialogs
+  - Normal users must receive clear modal explanations rather than technical 
+    raw stack traces.
+
+================================================================================
+6. DATABASE REQUIREMENTS & SCHEMA DESIGN
+================================================================================
+
+6.1 DATABASE CONFIGURATION
+* Database Name  : `expense_tracker`
+* Character Set  : `utf8mb4`
+* Collation      : `utf8mb4_unicode_ci`
+
+6.2 'users' TABLE DEFINITION
+--------------------------------------------------------------------------------
+Field Name  | Data Type        | Constraints                    | Description
+------------+------------------+--------------------------------+----------------
+id          | INT              | PK, AUTO_INCREMENT             | User ID
+name        | VARCHAR(100)     | NOT NULL                       | Full user name
+email       | VARCHAR(150)     | NOT NULL, UNIQUE               | Login email
+password    | VARCHAR(255)     | NOT NULL                       | Hashed password
+created_at  | TIMESTAMP        | DEFAULT CURRENT_TIMESTAMP      | Creation time
+--------------------------------------------------------------------------------
+
+6.3 'expenses' TABLE DEFINITION
+--------------------------------------------------------------------------------
+Field Name   | Data Type       | Constraints                    | Description
+-------------+-----------------+--------------------------------+---------------
+id           | INT             | PK, AUTO_INCREMENT             | Expense ID
+user_id      | INT             | NOT NULL, FK -> users(id)      | Owning user
+amount       | DECIMAL(10, 2)  | NOT NULL                       | Spend amount
+category     | VARCHAR(50)     | NOT NULL                       | Category tag
+expense_date | DATE            | NOT NULL                       | Transaction dt
+description  | VARCHAR(255)    | NULLABLE                       | Notes / remark
+created_at   | TIMESTAMP       | DEFAULT CURRENT_TIMESTAMP      | Log timestamp
+--------------------------------------------------------------------------------
+
+6.4 RELATIONAL CONSTRAINTS & CASCADING
+* Foreign Key: `expenses.user_id` REFERENCES `users(id)` ON DELETE CASCADE.
+* Deleting a user account automatically purges all associated expense records.
+
+================================================================================
+7. ARCHITECTURAL & DESIGN REQUIREMENTS
+================================================================================
+
+7.1 4-TIER LAYERED ARCHITECTURE
+--------------------------------
+1. Presentation Layer (`src/ui/`):
+   Swing frames and dialogs (LoginFrame, RegisterFrame, DashboardFrame, 
+   AddExpenseFrame, ExpenseHistoryFrame, ManageExpensesFrame, DateFilterFrame, 
+   CategorySummaryFrame, EditExpenseFrame).
+2. Service Layer (`src/service/`):
+   Business validation contracts (`UserService`, `ExpenseService`) and their
+   implementations (`UserServiceImpl`, `ExpenseServiceImpl`).
+3. Data Access Layer (`src/dao/`):
+   Data persistence interfaces (`UserDAO`, `ExpenseDAO`) and MySQL JDBC 
+   implementations (`MySQLUserDAO`, `MySQLExpenseDAO`, `DatabaseConnection`).
+4. Model Layer (`src/model/`):
+   Strongly-typed entity classes (`BaseEntity`, `User`, `RegularUser`, 
+   `AdminUser`, `Expense`).
+
+7.2 OBJECT-ORIENTED PROGRAMMING (OOP) PRINCIPLES
+-------------------------------------------------
+* Encapsulation : Private fields with validated public getters and setters.
+* Inheritance   : `BaseEntity` -> `User` & `Expense`; `User` -> `RegularUser` & 
+                  `AdminUser`.
+* Polymorphism  : Dynamic method overriding (`getRole()`, `getRoleDescription()`)
+                  and interface-driven programming (`UserService`, `ExpenseService`).
+* Abstraction   : Abstract classes and modular service layers concealing database
+                  driver complexities.
+* Interfaces    : Strict decoupling of presentation logic from persistence logic.
+
+7.3 CONCURRENCY & MULTITHREADING
+---------------------------------
+* `SwingWorker<T, V>`: Used for asynchronous CRUD operations off the EDT.
+* `CompletableFuture`: Parallel supplyAsync execution for dashboard aggregations.
+
+================================================================================
+8. DEPENDENCIES & THIRD-PARTY LIBRARIES
+================================================================================
+* Library Name : MySQL Connector/J
+* Jar File     : `lib/mysql-connector-j-8.3.0.jar`
+* Maven Coord  : `com.mysql:mysql-connector-j:8.3.0`
+* Purpose      : Type 4 JDBC driver facilitating communication with MySQL.
+
+================================================================================
+9. INSTALLATION, CONFIGURATION & EXECUTION INSTRUCTIONS
+================================================================================
+
+9.1 DATABASE INITIALIZATION
+1. Open MySQL Command Line Client or MySQL Workbench.
+2. Execute the setup script from `database.sql`:
+   ```sql
+   CREATE DATABASE IF NOT EXISTS expense_tracker;
+   USE expense_tracker;
+   -- (run remaining tables from database.sql)
+   ```
+
+9.2 CREDENTIAL CONFIGURATION
+1. Open `config/db.properties`.
+2. Configure your local MySQL credentials:
+   ```properties
+   db.url=jdbc:mysql://localhost:3306/expense_tracker?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+   db.user=root
+   db.password=YOUR_MYSQL_PASSWORD
+   ```
+
+9.3 HOW TO RUN THE APPLICATION
+* Method 1: Double-click the Desktop Shortcut icon ("Expense Tracker").
+* Method 2: Double-click `run.bat` in the project root folder.
+* Method 3: Run via PowerShell / Terminal:
+  ```powershell
+  # Compile
+  javac -cp "lib\mysql-connector-j-8.3.0.jar" -d out src\model\*.java src\dao\*.java src\service\*.java src\util\*.java src\ui\*.java src\Main.java
+
+  # Launch
+  java -cp "out;lib\mysql-connector-j-8.3.0.jar" Main
+  ```
+
+================================================================================
+10. VERIFICATION & TESTING CHECKLIST
+================================================================================
+The project includes an automated diagnostic test suite (`ComprehensiveTestSuite.java`)
+and test plan (`test_plan.md`) verifying all 20 scenarios:
+
+ [X] TC-01: New user registration with valid email format
+ [X] TC-02: Duplicate email registration blocked
+ [X] TC-03: Login with valid credentials
+ [X] TC-04: Login with invalid password rejected
+ [X] TC-05: Add valid expenses across categories
+ [X] TC-06: Negative / zero amount validation rejection
+ [X] TC-07: Empty category validation rejection
+ [X] TC-08: View expense history chronological table
+ [X] TC-09: Real-time calculation of total expenses
+ [X] TC-10: Real-time calculation of total transaction count
+ [X] TC-11: Current month spending calculation
+ [X] TC-12: Category-wise spending breakdown
+ [X] TC-13: Date-range filtering (Start Date <= End Date)
+ [X] TC-14: Edit existing expense
+ [X] TC-15: Delete expense with modal confirmation
+ [X] TC-16: Multi-tenant isolation (User B cannot view User A records)
+ [X] TC-17: Cross-user delete permission block
+ [X] TC-18: SwingWorker background execution (No UI freezing)
+ [X] TC-19: Database connection failure recovery
+ [X] TC-20: Clean user logout and session teardown
+
+================================================================================
+                       END OF REQUIREMENTS SPECIFICATION
+================================================================================
